@@ -1,4 +1,4 @@
-# virtualomisetown
+# Virtual Omise Town
 
 ## setup
 ```
