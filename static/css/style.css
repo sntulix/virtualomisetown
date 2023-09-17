@@ -1,0 +1,19 @@
+#formContainer {
+    z-index:1;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+}
+
+#message_list {
+    opacity: 0.8;
+}
+
+#chatInput {
+    width: 195px;
+}
+#bt_chat_send {
+    position: absolute;
+    left:200px;
+    width: 40px;
+}

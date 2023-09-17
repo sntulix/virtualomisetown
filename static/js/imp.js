@@ -1,0 +1,1 @@
+import gltfPhysicsObjectComponent from './gltfPhysicsObjectComponent';

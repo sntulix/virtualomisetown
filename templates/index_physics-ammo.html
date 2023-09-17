@@ -1,0 +1,964 @@
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/MozillaReality/ammo.js@8bbc0ea/builds/ammo.wasm.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-physics-system@v4.2.2/dist/aframe-physics-system.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body>
+    <div style="z-index:1; position: absolute;">W・S・A・Dキーで前後左右に移動。マウス左ドラッグで目線を回転。</div>
+    <a-scene physics="driver: ammo; debug: true; gravity: -9.8; debugDrawMode: 1">
+<!--
+      <a-text color="black" position="1.5 3 -3" value="damping: 0.25\nstiffness: 25"></a-text>
+      <a-box id="one" position="2 2 -3" color="blue" ammo-body="type: static"></a-box>
+      <a-box position="2 1 -3"
+             color="green"
+             ammo-body="linearSleepingThreshold: 0.5" ammo-shape
+             ammo-constraint="target: #one; type: spring; damping: 0.25; stiffness: 25"></a-box>
+
+      <a-text color="black" position="-0.5 3 -3" value="damping: 0.75\nstiffness: 75"></a-text>
+      <a-box id="two" position="0 2 -3" color="blue" ammo-body="type: static"></a-box>
+      <a-box id="onespring"
+             position="0 1 -3"
+             color="green"
+             ammo-body="linearSleepingThreshold: 0.5" ammo-shape
+             ammo-constraint="target: #two; type: spring; damping: 0.75; stiffness: 75;"></a-box>
+
+      <a-text color="black" position="-2.5 3 -3" value="damping: 1\nstiffness: 100"></a-text>
+      <a-box id="three" position="-2 2 -3" color="blue" ammo-body="type: static"></a-box>
+      <a-box id="twospring"
+             position="-2 1 -3"
+             color="green"
+             ammo-body="linearSleepingThreshold: 0.5" ammo-shape
+             ammo-constraint="target: #three; type: spring; "></a-box>
+
+      <a-text color="black" position="4.5 3 -3" value="localAnchorB:1 0 0\n(not yet supported in Ammo)"></a-text>
+      <a-box id="four" position="5 2 -3" color="blue" ammo-body="type: static"></a-box>
+      <a-box id="threespring"
+             position="5 1 -3"
+             color="green"
+             ammo-body="linearSleepingThreshold: 0.5" ammo-shape
+             ammo-constraint="target: #four; type: spring; targetPivot: 1 0 0;"></a-box>
+
+-->
+      <a-plane rotation="-90 0 0" geometry="primitive: plane; height: 10; width: 10"
+               position="10 30 0"
+               ammo-body="type: static"
+               ammo-shape="type: box"></a-plane>
+      <a-entity id="board"
+                geometry="primitive: box; depth: 2; height: 2; width: 2" material="color: #deb887"
+                ammo-body
+                ammo-shape="type: box;"
+                position="10 100 0">
+      </a-entity>
+
+
+      <a-entity camera look-controls wasd-controls="acceleration:0"></a-entity>
+      <a-camera id="camera" fov="50" position="0 50.15 0" rotation="0 0 0"></a-camera>
+
+      <a-entity frame-logger></a-entity>
+      <div id="formContainer">
+        <textarea id="message_list" cols="31" rows="15" readonly></textarea>
+        <form id="myForm">
+          <label for="chatInput"></label>
+          <input type="text" id="chatInput"  placeholder="チャット欄" />
+          <button id="bt_chat_send" value="送信">送信</button>
+        </form>
+      </div>
+
+      <a-assets>
+<!--        <a-asset-item id="world" src="{{ url_for('static', filename='model/Yotsukaido.glb') }}"></a-asset-item>
+-->
+
+        <img id="man01" alt="" src="{{ url_for('static', filename='img/男性夏服1.gif') }}">
+        <img id="woman01" alt="" src="{{ url_for('static', filename='img/女性夏服1.gif') }}">
+
+<a-asset-item id="Terrain_asset" src="{{ url_for('static', filename='model/Terrain.gltf') }}"></a-asset-item>
+<a-asset-item id="map_10.osm_forest_asset" src="{{ url_for('static', filename='model/map_10.osm_forest.gltf') }}"></a-asset-item>
+<a-asset-item id="四街道駅_asset" src="{{ url_for('static', filename='model/四街道駅.gltf') }}"></a-asset-item>
+<a-asset-item id="element_asset" src="{{ url_for('static', filename='model/element.gltf') }}"></a-asset-item>
+<a-asset-item id="element.001_asset" src="{{ url_for('static', filename='model/element.001.gltf') }}"></a-asset-item>
+<a-asset-item id="element.002_asset" src="{{ url_for('static', filename='model/element.002.gltf') }}"></a-asset-item>
+<a-asset-item id="element.003_asset" src="{{ url_for('static', filename='model/element.003.gltf') }}"></a-asset-item>
+<a-asset-item id="element.004_asset" src="{{ url_for('static', filename='model/element.004.gltf') }}"></a-asset-item>
+<a-asset-item id="element.005_asset" src="{{ url_for('static', filename='model/element.005.gltf') }}"></a-asset-item>
+<a-asset-item id="element.006_asset" src="{{ url_for('static', filename='model/element.006.gltf') }}"></a-asset-item>
+<a-asset-item id="element.007_asset" src="{{ url_for('static', filename='model/element.007.gltf') }}"></a-asset-item>
+<a-asset-item id="element.008_asset" src="{{ url_for('static', filename='model/element.008.gltf') }}"></a-asset-item>
+<a-asset-item id="element.009_asset" src="{{ url_for('static', filename='model/element.009.gltf') }}"></a-asset-item>
+<a-asset-item id="西棟_asset" src="{{ url_for('static', filename='model/西棟.gltf') }}"></a-asset-item>
+<a-asset-item id="イトーヨーカドー_asset" src="{{ url_for('static', filename='model/イトーヨーカドー.gltf') }}"></a-asset-item>
+<a-asset-item id="element.010_asset" src="{{ url_for('static', filename='model/element.010.gltf') }}"></a-asset-item>
+<a-asset-item id="element.011_asset" src="{{ url_for('static', filename='model/element.011.gltf') }}"></a-asset-item>
+<a-asset-item id="element.012_asset" src="{{ url_for('static', filename='model/element.012.gltf') }}"></a-asset-item>
+<a-asset-item id="element.013_asset" src="{{ url_for('static', filename='model/element.013.gltf') }}"></a-asset-item>
+<a-asset-item id="element.014_asset" src="{{ url_for('static', filename='model/element.014.gltf') }}"></a-asset-item>
+<a-asset-item id="element.015_asset" src="{{ url_for('static', filename='model/element.015.gltf') }}"></a-asset-item>
+<a-asset-item id="element.016_asset" src="{{ url_for('static', filename='model/element.016.gltf') }}"></a-asset-item>
+<a-asset-item id="element.017_asset" src="{{ url_for('static', filename='model/element.017.gltf') }}"></a-asset-item>
+<a-asset-item id="中央公園管理事務所_asset" src="{{ url_for('static', filename='model/中央公園管理事務所.gltf') }}"></a-asset-item>
+<a-asset-item id="四街道市営プール_asset" src="{{ url_for('static', filename='model/四街道市営プール.gltf') }}"></a-asset-item>
+<a-asset-item id="element.018_asset" src="{{ url_for('static', filename='model/element.018.gltf') }}"></a-asset-item>
+<a-asset-item id="鹿渡集会所_asset" src="{{ url_for('static', filename='model/鹿渡集会所.gltf') }}"></a-asset-item>
+<a-asset-item id="四街道市消防署_asset" src="{{ url_for('static', filename='model/四街道市消防署.gltf') }}"></a-asset-item>
+<a-asset-item id="element.019_asset" src="{{ url_for('static', filename='model/element.019.gltf') }}"></a-asset-item>
+<a-asset-item id="element.020_asset" src="{{ url_for('static', filename='model/element.020.gltf') }}"></a-asset-item>
+<a-asset-item id="element.021_asset" src="{{ url_for('static', filename='model/element.021.gltf') }}"></a-asset-item>
+<a-asset-item id="element.022_asset" src="{{ url_for('static', filename='model/element.022.gltf') }}"></a-asset-item>
+<a-asset-item id="四街道青少年育成センター_asset" src="{{ url_for('static', filename='model/四街道青少年育成センター.gltf') }}"></a-asset-item>
+<a-asset-item id="element.023_asset" src="{{ url_for('static', filename='model/element.023.gltf') }}"></a-asset-item>
+<a-asset-item id="千葉銀行四街道支店_asset" src="{{ url_for('static', filename='model/千葉銀行四街道支店.gltf') }}"></a-asset-item>
+<a-asset-item id="フォーレ四街道_asset" src="{{ url_for('static', filename='model/フォーレ四街道.gltf') }}"></a-asset-item>
+<a-asset-item id="element.024_asset" src="{{ url_for('static', filename='model/element.024.gltf') }}"></a-asset-item>
+<a-asset-item id="element.025_asset" src="{{ url_for('static', filename='model/element.025.gltf') }}"></a-asset-item>
+<a-asset-item id="三井住友銀行_asset" src="{{ url_for('static', filename='model/三井住友銀行.gltf') }}"></a-asset-item>
+<a-asset-item id="和光_asset" src="{{ url_for('static', filename='model/和光.gltf') }}"></a-asset-item>
+<a-asset-item id="石窯パンの店ル・マタン四街道店_asset" src="{{ url_for('static', filename='model/石窯パンの店ル・マタン四街道店.gltf') }}"></a-asset-item>
+<a-asset-item id="ヴェール・レッシュヴ_asset" src="{{ url_for('static', filename='model/ヴェール・レッシュヴ.gltf') }}"></a-asset-item>
+<a-asset-item id="四街道市立図書館_asset" src="{{ url_for('static', filename='model/四街道市立図書館.gltf') }}"></a-asset-item>
+<a-asset-item id="四街道市文化センター_asset" src="{{ url_for('static', filename='model/四街道市文化センター.gltf') }}"></a-asset-item>
+<a-asset-item id="四街道市役所_asset" src="{{ url_for('static', filename='model/四街道市役所.gltf') }}"></a-asset-item>
+<a-asset-item id="element.026_asset" src="{{ url_for('static', filename='model/element.026.gltf') }}"></a-asset-item>
+<a-asset-item id="京葉銀行四街道支店_asset" src="{{ url_for('static', filename='model/京葉銀行四街道支店.gltf') }}"></a-asset-item>
+<a-asset-item id="element.027_asset" src="{{ url_for('static', filename='model/element.027.gltf') }}"></a-asset-item>
+<a-asset-item id="element.028_asset" src="{{ url_for('static', filename='model/element.028.gltf') }}"></a-asset-item>
+<a-asset-item id="element.029_asset" src="{{ url_for('static', filename='model/element.029.gltf') }}"></a-asset-item>
+<a-asset-item id="element.030_asset" src="{{ url_for('static', filename='model/element.030.gltf') }}"></a-asset-item>
+<a-asset-item id="element.031_asset" src="{{ url_for('static', filename='model/element.031.gltf') }}"></a-asset-item>
+<a-asset-item id="Ｍ２プラザ 立体駐車場_asset" src="{{ url_for('static', filename='model/Ｍ２プラザ 立体駐車場.gltf') }}"></a-asset-item>
+<a-asset-item id="ユニクロ四街道店_asset" src="{{ url_for('static', filename='model/ユニクロ四街道店.gltf') }}"></a-asset-item>
+<a-asset-item id="element.032_asset" src="{{ url_for('static', filename='model/element.032.gltf') }}"></a-asset-item>
+<a-asset-item id="element.033_asset" src="{{ url_for('static', filename='model/element.033.gltf') }}"></a-asset-item>
+<a-asset-item id="element.034_asset" src="{{ url_for('static', filename='model/element.034.gltf') }}"></a-asset-item>
+<a-asset-item id="element.035_asset" src="{{ url_for('static', filename='model/element.035.gltf') }}"></a-asset-item>
+<a-asset-item id="element.036_asset" src="{{ url_for('static', filename='model/element.036.gltf') }}"></a-asset-item>
+<a-asset-item id="element.037_asset" src="{{ url_for('static', filename='model/element.037.gltf') }}"></a-asset-item>
+<a-asset-item id="element.038_asset" src="{{ url_for('static', filename='model/element.038.gltf') }}"></a-asset-item>
+<a-asset-item id="element.039_asset" src="{{ url_for('static', filename='model/element.039.gltf') }}"></a-asset-item>
+<a-asset-item id="element.040_asset" src="{{ url_for('static', filename='model/element.040.gltf') }}"></a-asset-item>
+<a-asset-item id="element.041_asset" src="{{ url_for('static', filename='model/element.041.gltf') }}"></a-asset-item>
+<a-asset-item id="element.042_asset" src="{{ url_for('static', filename='model/element.042.gltf') }}"></a-asset-item>
+<a-asset-item id="element.043_asset" src="{{ url_for('static', filename='model/element.043.gltf') }}"></a-asset-item>
+<a-asset-item id="element.044_asset" src="{{ url_for('static', filename='model/element.044.gltf') }}"></a-asset-item>
+<a-asset-item id="element.045_asset" src="{{ url_for('static', filename='model/element.045.gltf') }}"></a-asset-item>
+<a-asset-item id="element.046_asset" src="{{ url_for('static', filename='model/element.046.gltf') }}"></a-asset-item>
+<a-asset-item id="element.047_asset" src="{{ url_for('static', filename='model/element.047.gltf') }}"></a-asset-item>
+<a-asset-item id="element.048_asset" src="{{ url_for('static', filename='model/element.048.gltf') }}"></a-asset-item>
+<a-asset-item id="element.049_asset" src="{{ url_for('static', filename='model/element.049.gltf') }}"></a-asset-item>
+<a-asset-item id="element.050_asset" src="{{ url_for('static', filename='model/element.050.gltf') }}"></a-asset-item>
+<a-asset-item id="element.051_asset" src="{{ url_for('static', filename='model/element.051.gltf') }}"></a-asset-item>
+<a-asset-item id="element.052_asset" src="{{ url_for('static', filename='model/element.052.gltf') }}"></a-asset-item>
+<a-asset-item id="element.053_asset" src="{{ url_for('static', filename='model/element.053.gltf') }}"></a-asset-item>
+<a-asset-item id="element.054_asset" src="{{ url_for('static', filename='model/element.054.gltf') }}"></a-asset-item>
+<a-asset-item id="element.055_asset" src="{{ url_for('static', filename='model/element.055.gltf') }}"></a-asset-item>
+<a-asset-item id="element.056_asset" src="{{ url_for('static', filename='model/element.056.gltf') }}"></a-asset-item>
+<a-asset-item id="element.057_asset" src="{{ url_for('static', filename='model/element.057.gltf') }}"></a-asset-item>
+<a-asset-item id="element.058_asset" src="{{ url_for('static', filename='model/element.058.gltf') }}"></a-asset-item>
+<a-asset-item id="element.059_asset" src="{{ url_for('static', filename='model/element.059.gltf') }}"></a-asset-item>
+<a-asset-item id="element.060_asset" src="{{ url_for('static', filename='model/element.060.gltf') }}"></a-asset-item>
+<a-asset-item id="element.061_asset" src="{{ url_for('static', filename='model/element.061.gltf') }}"></a-asset-item>
+<a-asset-item id="element.062_asset" src="{{ url_for('static', filename='model/element.062.gltf') }}"></a-asset-item>
+<a-asset-item id="element.063_asset" src="{{ url_for('static', filename='model/element.063.gltf') }}"></a-asset-item>
+<a-asset-item id="element.064_asset" src="{{ url_for('static', filename='model/element.064.gltf') }}"></a-asset-item>
+<a-asset-item id="element.065_asset" src="{{ url_for('static', filename='model/element.065.gltf') }}"></a-asset-item>
+<a-asset-item id="element.066_asset" src="{{ url_for('static', filename='model/element.066.gltf') }}"></a-asset-item>
+<a-asset-item id="element.067_asset" src="{{ url_for('static', filename='model/element.067.gltf') }}"></a-asset-item>
+<a-asset-item id="element.068_asset" src="{{ url_for('static', filename='model/element.068.gltf') }}"></a-asset-item>
+<a-asset-item id="element.069_asset" src="{{ url_for('static', filename='model/element.069.gltf') }}"></a-asset-item>
+<a-asset-item id="element.070_asset" src="{{ url_for('static', filename='model/element.070.gltf') }}"></a-asset-item>
+<a-asset-item id="element.071_asset" src="{{ url_for('static', filename='model/element.071.gltf') }}"></a-asset-item>
+<a-asset-item id="element.072_asset" src="{{ url_for('static', filename='model/element.072.gltf') }}"></a-asset-item>
+<a-asset-item id="element.073_asset" src="{{ url_for('static', filename='model/element.073.gltf') }}"></a-asset-item>
+<a-asset-item id="element.074_asset" src="{{ url_for('static', filename='model/element.074.gltf') }}"></a-asset-item>
+<a-asset-item id="element.075_asset" src="{{ url_for('static', filename='model/element.075.gltf') }}"></a-asset-item>
+<a-asset-item id="element.076_asset" src="{{ url_for('static', filename='model/element.076.gltf') }}"></a-asset-item>
+<a-asset-item id="element.077_asset" src="{{ url_for('static', filename='model/element.077.gltf') }}"></a-asset-item>
+<a-asset-item id="element.078_asset" src="{{ url_for('static', filename='model/element.078.gltf') }}"></a-asset-item>
+<a-asset-item id="element.079_asset" src="{{ url_for('static', filename='model/element.079.gltf') }}"></a-asset-item>
+<a-asset-item id="element.080_asset" src="{{ url_for('static', filename='model/element.080.gltf') }}"></a-asset-item>
+<a-asset-item id="element.081_asset" src="{{ url_for('static', filename='model/element.081.gltf') }}"></a-asset-item>
+<a-asset-item id="element.082_asset" src="{{ url_for('static', filename='model/element.082.gltf') }}"></a-asset-item>
+<a-asset-item id="element.083_asset" src="{{ url_for('static', filename='model/element.083.gltf') }}"></a-asset-item>
+<a-asset-item id="element.084_asset" src="{{ url_for('static', filename='model/element.084.gltf') }}"></a-asset-item>
+<a-asset-item id="element.085_asset" src="{{ url_for('static', filename='model/element.085.gltf') }}"></a-asset-item>
+<a-asset-item id="element.086_asset" src="{{ url_for('static', filename='model/element.086.gltf') }}"></a-asset-item>
+<a-asset-item id="element.087_asset" src="{{ url_for('static', filename='model/element.087.gltf') }}"></a-asset-item>
+<a-asset-item id="element.088_asset" src="{{ url_for('static', filename='model/element.088.gltf') }}"></a-asset-item>
+<a-asset-item id="element.089_asset" src="{{ url_for('static', filename='model/element.089.gltf') }}"></a-asset-item>
+<a-asset-item id="element.090_asset" src="{{ url_for('static', filename='model/element.090.gltf') }}"></a-asset-item>
+<a-asset-item id="element.091_asset" src="{{ url_for('static', filename='model/element.091.gltf') }}"></a-asset-item>
+<a-asset-item id="element.092_asset" src="{{ url_for('static', filename='model/element.092.gltf') }}"></a-asset-item>
+<a-asset-item id="element.093_asset" src="{{ url_for('static', filename='model/element.093.gltf') }}"></a-asset-item>
+<a-asset-item id="element.094_asset" src="{{ url_for('static', filename='model/element.094.gltf') }}"></a-asset-item>
+<a-asset-item id="element.095_asset" src="{{ url_for('static', filename='model/element.095.gltf') }}"></a-asset-item>
+<a-asset-item id="element.096_asset" src="{{ url_for('static', filename='model/element.096.gltf') }}"></a-asset-item>
+<a-asset-item id="element.097_asset" src="{{ url_for('static', filename='model/element.097.gltf') }}"></a-asset-item>
+<a-asset-item id="element.098_asset" src="{{ url_for('static', filename='model/element.098.gltf') }}"></a-asset-item>
+<a-asset-item id="element.099_asset" src="{{ url_for('static', filename='model/element.099.gltf') }}"></a-asset-item>
+<a-asset-item id="element.100_asset" src="{{ url_for('static', filename='model/element.100.gltf') }}"></a-asset-item>
+<a-asset-item id="element.101_asset" src="{{ url_for('static', filename='model/element.101.gltf') }}"></a-asset-item>
+<a-asset-item id="element.102_asset" src="{{ url_for('static', filename='model/element.102.gltf') }}"></a-asset-item>
+<a-asset-item id="element.103_asset" src="{{ url_for('static', filename='model/element.103.gltf') }}"></a-asset-item>
+<a-asset-item id="element.104_asset" src="{{ url_for('static', filename='model/element.104.gltf') }}"></a-asset-item>
+<a-asset-item id="element.105_asset" src="{{ url_for('static', filename='model/element.105.gltf') }}"></a-asset-item>
+<a-asset-item id="element.106_asset" src="{{ url_for('static', filename='model/element.106.gltf') }}"></a-asset-item>
+<a-asset-item id="element.107_asset" src="{{ url_for('static', filename='model/element.107.gltf') }}"></a-asset-item>
+<a-asset-item id="element.108_asset" src="{{ url_for('static', filename='model/element.108.gltf') }}"></a-asset-item>
+<a-asset-item id="element.109_asset" src="{{ url_for('static', filename='model/element.109.gltf') }}"></a-asset-item>
+<a-asset-item id="element.110_asset" src="{{ url_for('static', filename='model/element.110.gltf') }}"></a-asset-item>
+<a-asset-item id="element.111_asset" src="{{ url_for('static', filename='model/element.111.gltf') }}"></a-asset-item>
+<a-asset-item id="element.112_asset" src="{{ url_for('static', filename='model/element.112.gltf') }}"></a-asset-item>
+<a-asset-item id="element.113_asset" src="{{ url_for('static', filename='model/element.113.gltf') }}"></a-asset-item>
+<a-asset-item id="element.114_asset" src="{{ url_for('static', filename='model/element.114.gltf') }}"></a-asset-item>
+<a-asset-item id="element.115_asset" src="{{ url_for('static', filename='model/element.115.gltf') }}"></a-asset-item>
+<a-asset-item id="element.116_asset" src="{{ url_for('static', filename='model/element.116.gltf') }}"></a-asset-item>
+<a-asset-item id="element.117_asset" src="{{ url_for('static', filename='model/element.117.gltf') }}"></a-asset-item>
+<a-asset-item id="element.118_asset" src="{{ url_for('static', filename='model/element.118.gltf') }}"></a-asset-item>
+<a-asset-item id="element.119_asset" src="{{ url_for('static', filename='model/element.119.gltf') }}"></a-asset-item>
+<a-asset-item id="element.120_asset" src="{{ url_for('static', filename='model/element.120.gltf') }}"></a-asset-item>
+<a-asset-item id="element.121_asset" src="{{ url_for('static', filename='model/element.121.gltf') }}"></a-asset-item>
+<a-asset-item id="element.122_asset" src="{{ url_for('static', filename='model/element.122.gltf') }}"></a-asset-item>
+<a-asset-item id="element.123_asset" src="{{ url_for('static', filename='model/element.123.gltf') }}"></a-asset-item>
+<a-asset-item id="element.124_asset" src="{{ url_for('static', filename='model/element.124.gltf') }}"></a-asset-item>
+<a-asset-item id="element.125_asset" src="{{ url_for('static', filename='model/element.125.gltf') }}"></a-asset-item>
+<a-asset-item id="element.126_asset" src="{{ url_for('static', filename='model/element.126.gltf') }}"></a-asset-item>
+<a-asset-item id="element.127_asset" src="{{ url_for('static', filename='model/element.127.gltf') }}"></a-asset-item>
+<a-asset-item id="element.128_asset" src="{{ url_for('static', filename='model/element.128.gltf') }}"></a-asset-item>
+<a-asset-item id="element.129_asset" src="{{ url_for('static', filename='model/element.129.gltf') }}"></a-asset-item>
+<a-asset-item id="element.130_asset" src="{{ url_for('static', filename='model/element.130.gltf') }}"></a-asset-item>
+<a-asset-item id="element.131_asset" src="{{ url_for('static', filename='model/element.131.gltf') }}"></a-asset-item>
+<a-asset-item id="element.132_asset" src="{{ url_for('static', filename='model/element.132.gltf') }}"></a-asset-item>
+<a-asset-item id="element.133_asset" src="{{ url_for('static', filename='model/element.133.gltf') }}"></a-asset-item>
+<a-asset-item id="element.134_asset" src="{{ url_for('static', filename='model/element.134.gltf') }}"></a-asset-item>
+<a-asset-item id="element.135_asset" src="{{ url_for('static', filename='model/element.135.gltf') }}"></a-asset-item>
+<a-asset-item id="element.136_asset" src="{{ url_for('static', filename='model/element.136.gltf') }}"></a-asset-item>
+<a-asset-item id="element.137_asset" src="{{ url_for('static', filename='model/element.137.gltf') }}"></a-asset-item>
+<a-asset-item id="element.138_asset" src="{{ url_for('static', filename='model/element.138.gltf') }}"></a-asset-item>
+<a-asset-item id="element.139_asset" src="{{ url_for('static', filename='model/element.139.gltf') }}"></a-asset-item>
+<a-asset-item id="element.140_asset" src="{{ url_for('static', filename='model/element.140.gltf') }}"></a-asset-item>
+<a-asset-item id="element.141_asset" src="{{ url_for('static', filename='model/element.141.gltf') }}"></a-asset-item>
+<a-asset-item id="element.142_asset" src="{{ url_for('static', filename='model/element.142.gltf') }}"></a-asset-item>
+<a-asset-item id="element.143_asset" src="{{ url_for('static', filename='model/element.143.gltf') }}"></a-asset-item>
+<a-asset-item id="element.144_asset" src="{{ url_for('static', filename='model/element.144.gltf') }}"></a-asset-item>
+<a-asset-item id="element.145_asset" src="{{ url_for('static', filename='model/element.145.gltf') }}"></a-asset-item>
+<a-asset-item id="element.146_asset" src="{{ url_for('static', filename='model/element.146.gltf') }}"></a-asset-item>
+<a-asset-item id="element.147_asset" src="{{ url_for('static', filename='model/element.147.gltf') }}"></a-asset-item>
+<a-asset-item id="element.148_asset" src="{{ url_for('static', filename='model/element.148.gltf') }}"></a-asset-item>
+<a-asset-item id="element.149_asset" src="{{ url_for('static', filename='model/element.149.gltf') }}"></a-asset-item>
+<a-asset-item id="element.150_asset" src="{{ url_for('static', filename='model/element.150.gltf') }}"></a-asset-item>
+<a-asset-item id="element.151_asset" src="{{ url_for('static', filename='model/element.151.gltf') }}"></a-asset-item>
+<a-asset-item id="element.152_asset" src="{{ url_for('static', filename='model/element.152.gltf') }}"></a-asset-item>
+<a-asset-item id="element.153_asset" src="{{ url_for('static', filename='model/element.153.gltf') }}"></a-asset-item>
+<a-asset-item id="element.154_asset" src="{{ url_for('static', filename='model/element.154.gltf') }}"></a-asset-item>
+<a-asset-item id="element.155_asset" src="{{ url_for('static', filename='model/element.155.gltf') }}"></a-asset-item>
+<a-asset-item id="element.156_asset" src="{{ url_for('static', filename='model/element.156.gltf') }}"></a-asset-item>
+<a-asset-item id="element.157_asset" src="{{ url_for('static', filename='model/element.157.gltf') }}"></a-asset-item>
+<a-asset-item id="element.158_asset" src="{{ url_for('static', filename='model/element.158.gltf') }}"></a-asset-item>
+<a-asset-item id="element.159_asset" src="{{ url_for('static', filename='model/element.159.gltf') }}"></a-asset-item>
+<a-asset-item id="element.160_asset" src="{{ url_for('static', filename='model/element.160.gltf') }}"></a-asset-item>
+<a-asset-item id="element.161_asset" src="{{ url_for('static', filename='model/element.161.gltf') }}"></a-asset-item>
+<a-asset-item id="element.162_asset" src="{{ url_for('static', filename='model/element.162.gltf') }}"></a-asset-item>
+<a-asset-item id="element.163_asset" src="{{ url_for('static', filename='model/element.163.gltf') }}"></a-asset-item>
+<a-asset-item id="element.164_asset" src="{{ url_for('static', filename='model/element.164.gltf') }}"></a-asset-item>
+<a-asset-item id="element.165_asset" src="{{ url_for('static', filename='model/element.165.gltf') }}"></a-asset-item>
+<a-asset-item id="element.166_asset" src="{{ url_for('static', filename='model/element.166.gltf') }}"></a-asset-item>
+<a-asset-item id="element.167_asset" src="{{ url_for('static', filename='model/element.167.gltf') }}"></a-asset-item>
+<a-asset-item id="element.168_asset" src="{{ url_for('static', filename='model/element.168.gltf') }}"></a-asset-item>
+<a-asset-item id="element.169_asset" src="{{ url_for('static', filename='model/element.169.gltf') }}"></a-asset-item>
+<a-asset-item id="element.170_asset" src="{{ url_for('static', filename='model/element.170.gltf') }}"></a-asset-item>
+<a-asset-item id="element.171_asset" src="{{ url_for('static', filename='model/element.171.gltf') }}"></a-asset-item>
+<a-asset-item id="element.172_asset" src="{{ url_for('static', filename='model/element.172.gltf') }}"></a-asset-item>
+<a-asset-item id="element.173_asset" src="{{ url_for('static', filename='model/element.173.gltf') }}"></a-asset-item>
+<a-asset-item id="element.174_asset" src="{{ url_for('static', filename='model/element.174.gltf') }}"></a-asset-item>
+<a-asset-item id="element.175_asset" src="{{ url_for('static', filename='model/element.175.gltf') }}"></a-asset-item>
+<a-asset-item id="element.176_asset" src="{{ url_for('static', filename='model/element.176.gltf') }}"></a-asset-item>
+<a-asset-item id="element.177_asset" src="{{ url_for('static', filename='model/element.177.gltf') }}"></a-asset-item>
+<a-asset-item id="element.178_asset" src="{{ url_for('static', filename='model/element.178.gltf') }}"></a-asset-item>
+<a-asset-item id="element.179_asset" src="{{ url_for('static', filename='model/element.179.gltf') }}"></a-asset-item>
+<a-asset-item id="element.180_asset" src="{{ url_for('static', filename='model/element.180.gltf') }}"></a-asset-item>
+<a-asset-item id="element.181_asset" src="{{ url_for('static', filename='model/element.181.gltf') }}"></a-asset-item>
+<a-asset-item id="element.182_asset" src="{{ url_for('static', filename='model/element.182.gltf') }}"></a-asset-item>
+<a-asset-item id="element.183_asset" src="{{ url_for('static', filename='model/element.183.gltf') }}"></a-asset-item>
+<a-asset-item id="element.184_asset" src="{{ url_for('static', filename='model/element.184.gltf') }}"></a-asset-item>
+<a-asset-item id="element.185_asset" src="{{ url_for('static', filename='model/element.185.gltf') }}"></a-asset-item>
+<a-asset-item id="element.186_asset" src="{{ url_for('static', filename='model/element.186.gltf') }}"></a-asset-item>
+<a-asset-item id="element.187_asset" src="{{ url_for('static', filename='model/element.187.gltf') }}"></a-asset-item>
+<a-asset-item id="element.188_asset" src="{{ url_for('static', filename='model/element.188.gltf') }}"></a-asset-item>
+<a-asset-item id="element.189_asset" src="{{ url_for('static', filename='model/element.189.gltf') }}"></a-asset-item>
+<a-asset-item id="element.190_asset" src="{{ url_for('static', filename='model/element.190.gltf') }}"></a-asset-item>
+<a-asset-item id="element.191_asset" src="{{ url_for('static', filename='model/element.191.gltf') }}"></a-asset-item>
+<a-asset-item id="element.192_asset" src="{{ url_for('static', filename='model/element.192.gltf') }}"></a-asset-item>
+<a-asset-item id="element.193_asset" src="{{ url_for('static', filename='model/element.193.gltf') }}"></a-asset-item>
+<a-asset-item id="element.194_asset" src="{{ url_for('static', filename='model/element.194.gltf') }}"></a-asset-item>
+<a-asset-item id="element.195_asset" src="{{ url_for('static', filename='model/element.195.gltf') }}"></a-asset-item>
+<a-asset-item id="element.196_asset" src="{{ url_for('static', filename='model/element.196.gltf') }}"></a-asset-item>
+<a-asset-item id="element.197_asset" src="{{ url_for('static', filename='model/element.197.gltf') }}"></a-asset-item>
+<a-asset-item id="element.198_asset" src="{{ url_for('static', filename='model/element.198.gltf') }}"></a-asset-item>
+<a-asset-item id="element.199_asset" src="{{ url_for('static', filename='model/element.199.gltf') }}"></a-asset-item>
+<a-asset-item id="element.200_asset" src="{{ url_for('static', filename='model/element.200.gltf') }}"></a-asset-item>
+<a-asset-item id="element.201_asset" src="{{ url_for('static', filename='model/element.201.gltf') }}"></a-asset-item>
+<a-asset-item id="element.202_asset" src="{{ url_for('static', filename='model/element.202.gltf') }}"></a-asset-item>
+<a-asset-item id="element.203_asset" src="{{ url_for('static', filename='model/element.203.gltf') }}"></a-asset-item>
+<a-asset-item id="element.204_asset" src="{{ url_for('static', filename='model/element.204.gltf') }}"></a-asset-item>
+<a-asset-item id="element.205_asset" src="{{ url_for('static', filename='model/element.205.gltf') }}"></a-asset-item>
+<a-asset-item id="element.206_asset" src="{{ url_for('static', filename='model/element.206.gltf') }}"></a-asset-item>
+<a-asset-item id="element.207_asset" src="{{ url_for('static', filename='model/element.207.gltf') }}"></a-asset-item>
+<a-asset-item id="element.208_asset" src="{{ url_for('static', filename='model/element.208.gltf') }}"></a-asset-item>
+<a-asset-item id="element.209_asset" src="{{ url_for('static', filename='model/element.209.gltf') }}"></a-asset-item>
+<a-asset-item id="element.210_asset" src="{{ url_for('static', filename='model/element.210.gltf') }}"></a-asset-item>
+<a-asset-item id="element.211_asset" src="{{ url_for('static', filename='model/element.211.gltf') }}"></a-asset-item>
+<a-asset-item id="element.212_asset" src="{{ url_for('static', filename='model/element.212.gltf') }}"></a-asset-item>
+<a-asset-item id="element.213_asset" src="{{ url_for('static', filename='model/element.213.gltf') }}"></a-asset-item>
+<a-asset-item id="element.214_asset" src="{{ url_for('static', filename='model/element.214.gltf') }}"></a-asset-item>
+<a-asset-item id="element.215_asset" src="{{ url_for('static', filename='model/element.215.gltf') }}"></a-asset-item>
+<a-asset-item id="element.216_asset" src="{{ url_for('static', filename='model/element.216.gltf') }}"></a-asset-item>
+<a-asset-item id="element.217_asset" src="{{ url_for('static', filename='model/element.217.gltf') }}"></a-asset-item>
+<a-asset-item id="element.218_asset" src="{{ url_for('static', filename='model/element.218.gltf') }}"></a-asset-item>
+<a-asset-item id="element.219_asset" src="{{ url_for('static', filename='model/element.219.gltf') }}"></a-asset-item>
+<a-asset-item id="element.220_asset" src="{{ url_for('static', filename='model/element.220.gltf') }}"></a-asset-item>
+<a-asset-item id="element.221_asset" src="{{ url_for('static', filename='model/element.221.gltf') }}"></a-asset-item>
+<a-asset-item id="element.222_asset" src="{{ url_for('static', filename='model/element.222.gltf') }}"></a-asset-item>
+<a-asset-item id="element.223_asset" src="{{ url_for('static', filename='model/element.223.gltf') }}"></a-asset-item>
+<a-asset-item id="element.224_asset" src="{{ url_for('static', filename='model/element.224.gltf') }}"></a-asset-item>
+<a-asset-item id="element.225_asset" src="{{ url_for('static', filename='model/element.225.gltf') }}"></a-asset-item>
+<a-asset-item id="element.226_asset" src="{{ url_for('static', filename='model/element.226.gltf') }}"></a-asset-item>
+<a-asset-item id="element.227_asset" src="{{ url_for('static', filename='model/element.227.gltf') }}"></a-asset-item>
+<a-asset-item id="element.228_asset" src="{{ url_for('static', filename='model/element.228.gltf') }}"></a-asset-item>
+<a-asset-item id="element.229_asset" src="{{ url_for('static', filename='model/element.229.gltf') }}"></a-asset-item>
+<a-asset-item id="element.230_asset" src="{{ url_for('static', filename='model/element.230.gltf') }}"></a-asset-item>
+<a-asset-item id="element.231_asset" src="{{ url_for('static', filename='model/element.231.gltf') }}"></a-asset-item>
+<a-asset-item id="element.232_asset" src="{{ url_for('static', filename='model/element.232.gltf') }}"></a-asset-item>
+<a-asset-item id="element.233_asset" src="{{ url_for('static', filename='model/element.233.gltf') }}"></a-asset-item>
+<a-asset-item id="element.234_asset" src="{{ url_for('static', filename='model/element.234.gltf') }}"></a-asset-item>
+<a-asset-item id="element.235_asset" src="{{ url_for('static', filename='model/element.235.gltf') }}"></a-asset-item>
+<a-asset-item id="element.236_asset" src="{{ url_for('static', filename='model/element.236.gltf') }}"></a-asset-item>
+<a-asset-item id="element.237_asset" src="{{ url_for('static', filename='model/element.237.gltf') }}"></a-asset-item>
+<a-asset-item id="element.238_asset" src="{{ url_for('static', filename='model/element.238.gltf') }}"></a-asset-item>
+<a-asset-item id="element.239_asset" src="{{ url_for('static', filename='model/element.239.gltf') }}"></a-asset-item>
+<a-asset-item id="element.240_asset" src="{{ url_for('static', filename='model/element.240.gltf') }}"></a-asset-item>
+<a-asset-item id="element.241_asset" src="{{ url_for('static', filename='model/element.241.gltf') }}"></a-asset-item>
+<a-asset-item id="element.242_asset" src="{{ url_for('static', filename='model/element.242.gltf') }}"></a-asset-item>
+<a-asset-item id="element.243_asset" src="{{ url_for('static', filename='model/element.243.gltf') }}"></a-asset-item>
+<a-asset-item id="element.244_asset" src="{{ url_for('static', filename='model/element.244.gltf') }}"></a-asset-item>
+<a-asset-item id="element.245_asset" src="{{ url_for('static', filename='model/element.245.gltf') }}"></a-asset-item>
+<a-asset-item id="element.246_asset" src="{{ url_for('static', filename='model/element.246.gltf') }}"></a-asset-item>
+<a-asset-item id="element.247_asset" src="{{ url_for('static', filename='model/element.247.gltf') }}"></a-asset-item>
+<a-asset-item id="element.248_asset" src="{{ url_for('static', filename='model/element.248.gltf') }}"></a-asset-item>
+<a-asset-item id="element.249_asset" src="{{ url_for('static', filename='model/element.249.gltf') }}"></a-asset-item>
+<a-asset-item id="element.250_asset" src="{{ url_for('static', filename='model/element.250.gltf') }}"></a-asset-item>
+<a-asset-item id="element.251_asset" src="{{ url_for('static', filename='model/element.251.gltf') }}"></a-asset-item>
+<a-asset-item id="element.252_asset" src="{{ url_for('static', filename='model/element.252.gltf') }}"></a-asset-item>
+<a-asset-item id="element.253_asset" src="{{ url_for('static', filename='model/element.253.gltf') }}"></a-asset-item>
+<a-asset-item id="element.254_asset" src="{{ url_for('static', filename='model/element.254.gltf') }}"></a-asset-item>
+<a-asset-item id="element.255_asset" src="{{ url_for('static', filename='model/element.255.gltf') }}"></a-asset-item>
+<a-asset-item id="element.256_asset" src="{{ url_for('static', filename='model/element.256.gltf') }}"></a-asset-item>
+<a-asset-item id="element.257_asset" src="{{ url_for('static', filename='model/element.257.gltf') }}"></a-asset-item>
+<a-asset-item id="element.258_asset" src="{{ url_for('static', filename='model/element.258.gltf') }}"></a-asset-item>
+<a-asset-item id="element.259_asset" src="{{ url_for('static', filename='model/element.259.gltf') }}"></a-asset-item>
+<a-asset-item id="element.260_asset" src="{{ url_for('static', filename='model/element.260.gltf') }}"></a-asset-item>
+<a-asset-item id="element.261_asset" src="{{ url_for('static', filename='model/element.261.gltf') }}"></a-asset-item>
+<a-asset-item id="element.262_asset" src="{{ url_for('static', filename='model/element.262.gltf') }}"></a-asset-item>
+<a-asset-item id="element.263_asset" src="{{ url_for('static', filename='model/element.263.gltf') }}"></a-asset-item>
+<a-asset-item id="element.264_asset" src="{{ url_for('static', filename='model/element.264.gltf') }}"></a-asset-item>
+<a-asset-item id="element.265_asset" src="{{ url_for('static', filename='model/element.265.gltf') }}"></a-asset-item>
+<a-asset-item id="element.266_asset" src="{{ url_for('static', filename='model/element.266.gltf') }}"></a-asset-item>
+<a-asset-item id="element.267_asset" src="{{ url_for('static', filename='model/element.267.gltf') }}"></a-asset-item>
+<a-asset-item id="element.268_asset" src="{{ url_for('static', filename='model/element.268.gltf') }}"></a-asset-item>
+<a-asset-item id="element.269_asset" src="{{ url_for('static', filename='model/element.269.gltf') }}"></a-asset-item>
+<a-asset-item id="element.270_asset" src="{{ url_for('static', filename='model/element.270.gltf') }}"></a-asset-item>
+<a-asset-item id="element.271_asset" src="{{ url_for('static', filename='model/element.271.gltf') }}"></a-asset-item>
+<a-asset-item id="element.272_asset" src="{{ url_for('static', filename='model/element.272.gltf') }}"></a-asset-item>
+<a-asset-item id="element.273_asset" src="{{ url_for('static', filename='model/element.273.gltf') }}"></a-asset-item>
+<a-asset-item id="element.274_asset" src="{{ url_for('static', filename='model/element.274.gltf') }}"></a-asset-item>
+<a-asset-item id="element.275_asset" src="{{ url_for('static', filename='model/element.275.gltf') }}"></a-asset-item>
+<a-asset-item id="element.276_asset" src="{{ url_for('static', filename='model/element.276.gltf') }}"></a-asset-item>
+<a-asset-item id="element.277_asset" src="{{ url_for('static', filename='model/element.277.gltf') }}"></a-asset-item>
+<a-asset-item id="element.278_asset" src="{{ url_for('static', filename='model/element.278.gltf') }}"></a-asset-item>
+<a-asset-item id="element.279_asset" src="{{ url_for('static', filename='model/element.279.gltf') }}"></a-asset-item>
+<a-asset-item id="element.280_asset" src="{{ url_for('static', filename='model/element.280.gltf') }}"></a-asset-item>
+<a-asset-item id="element.281_asset" src="{{ url_for('static', filename='model/element.281.gltf') }}"></a-asset-item>
+<a-asset-item id="element.282_asset" src="{{ url_for('static', filename='model/element.282.gltf') }}"></a-asset-item>
+<a-asset-item id="element.283_asset" src="{{ url_for('static', filename='model/element.283.gltf') }}"></a-asset-item>
+<a-asset-item id="element.284_asset" src="{{ url_for('static', filename='model/element.284.gltf') }}"></a-asset-item>
+<a-asset-item id="element.285_asset" src="{{ url_for('static', filename='model/element.285.gltf') }}"></a-asset-item>
+<a-asset-item id="element.286_asset" src="{{ url_for('static', filename='model/element.286.gltf') }}"></a-asset-item>
+<a-asset-item id="element.287_asset" src="{{ url_for('static', filename='model/element.287.gltf') }}"></a-asset-item>
+<a-asset-item id="element.288_asset" src="{{ url_for('static', filename='model/element.288.gltf') }}"></a-asset-item>
+<a-asset-item id="element.289_asset" src="{{ url_for('static', filename='model/element.289.gltf') }}"></a-asset-item>
+<a-asset-item id="element.290_asset" src="{{ url_for('static', filename='model/element.290.gltf') }}"></a-asset-item>
+<a-asset-item id="element.291_asset" src="{{ url_for('static', filename='model/element.291.gltf') }}"></a-asset-item>
+<a-asset-item id="element.292_asset" src="{{ url_for('static', filename='model/element.292.gltf') }}"></a-asset-item>
+<a-asset-item id="element.293_asset" src="{{ url_for('static', filename='model/element.293.gltf') }}"></a-asset-item>
+<a-asset-item id="element.294_asset" src="{{ url_for('static', filename='model/element.294.gltf') }}"></a-asset-item>
+<a-asset-item id="element.295_asset" src="{{ url_for('static', filename='model/element.295.gltf') }}"></a-asset-item>
+<a-asset-item id="element.296_asset" src="{{ url_for('static', filename='model/element.296.gltf') }}"></a-asset-item>
+<a-asset-item id="element.297_asset" src="{{ url_for('static', filename='model/element.297.gltf') }}"></a-asset-item>
+<a-asset-item id="element.298_asset" src="{{ url_for('static', filename='model/element.298.gltf') }}"></a-asset-item>
+<a-asset-item id="element.299_asset" src="{{ url_for('static', filename='model/element.299.gltf') }}"></a-asset-item>
+<a-asset-item id="element.300_asset" src="{{ url_for('static', filename='model/element.300.gltf') }}"></a-asset-item>
+<a-asset-item id="element.301_asset" src="{{ url_for('static', filename='model/element.301.gltf') }}"></a-asset-item>
+<a-asset-item id="element.302_asset" src="{{ url_for('static', filename='model/element.302.gltf') }}"></a-asset-item>
+<a-asset-item id="element.303_asset" src="{{ url_for('static', filename='model/element.303.gltf') }}"></a-asset-item>
+<a-asset-item id="element.304_asset" src="{{ url_for('static', filename='model/element.304.gltf') }}"></a-asset-item>
+<a-asset-item id="element.305_asset" src="{{ url_for('static', filename='model/element.305.gltf') }}"></a-asset-item>
+<a-asset-item id="element.306_asset" src="{{ url_for('static', filename='model/element.306.gltf') }}"></a-asset-item>
+<a-asset-item id="element.307_asset" src="{{ url_for('static', filename='model/element.307.gltf') }}"></a-asset-item>
+<a-asset-item id="element.308_asset" src="{{ url_for('static', filename='model/element.308.gltf') }}"></a-asset-item>
+<a-asset-item id="element.309_asset" src="{{ url_for('static', filename='model/element.309.gltf') }}"></a-asset-item>
+<a-asset-item id="element.310_asset" src="{{ url_for('static', filename='model/element.310.gltf') }}"></a-asset-item>
+<a-asset-item id="element.311_asset" src="{{ url_for('static', filename='model/element.311.gltf') }}"></a-asset-item>
+<a-asset-item id="element.312_asset" src="{{ url_for('static', filename='model/element.312.gltf') }}"></a-asset-item>
+<a-asset-item id="element.313_asset" src="{{ url_for('static', filename='model/element.313.gltf') }}"></a-asset-item>
+<a-asset-item id="element.314_asset" src="{{ url_for('static', filename='model/element.314.gltf') }}"></a-asset-item>
+<a-asset-item id="element.315_asset" src="{{ url_for('static', filename='model/element.315.gltf') }}"></a-asset-item>
+<a-asset-item id="element.316_asset" src="{{ url_for('static', filename='model/element.316.gltf') }}"></a-asset-item>
+<a-asset-item id="element.317_asset" src="{{ url_for('static', filename='model/element.317.gltf') }}"></a-asset-item>
+<a-asset-item id="element.318_asset" src="{{ url_for('static', filename='model/element.318.gltf') }}"></a-asset-item>
+<a-asset-item id="element.319_asset" src="{{ url_for('static', filename='model/element.319.gltf') }}"></a-asset-item>
+<a-asset-item id="element.320_asset" src="{{ url_for('static', filename='model/element.320.gltf') }}"></a-asset-item>
+<a-asset-item id="element.321_asset" src="{{ url_for('static', filename='model/element.321.gltf') }}"></a-asset-item>
+<a-asset-item id="element.322_asset" src="{{ url_for('static', filename='model/element.322.gltf') }}"></a-asset-item>
+<a-asset-item id="element.323_asset" src="{{ url_for('static', filename='model/element.323.gltf') }}"></a-asset-item>
+<a-asset-item id="element.324_asset" src="{{ url_for('static', filename='model/element.324.gltf') }}"></a-asset-item>
+<a-asset-item id="element.325_asset" src="{{ url_for('static', filename='model/element.325.gltf') }}"></a-asset-item>
+<a-asset-item id="element.326_asset" src="{{ url_for('static', filename='model/element.326.gltf') }}"></a-asset-item>
+<a-asset-item id="element.327_asset" src="{{ url_for('static', filename='model/element.327.gltf') }}"></a-asset-item>
+<a-asset-item id="element.328_asset" src="{{ url_for('static', filename='model/element.328.gltf') }}"></a-asset-item>
+<a-asset-item id="element.329_asset" src="{{ url_for('static', filename='model/element.329.gltf') }}"></a-asset-item>
+<a-asset-item id="element.330_asset" src="{{ url_for('static', filename='model/element.330.gltf') }}"></a-asset-item>
+<a-asset-item id="element.331_asset" src="{{ url_for('static', filename='model/element.331.gltf') }}"></a-asset-item>
+<a-asset-item id="element.332_asset" src="{{ url_for('static', filename='model/element.332.gltf') }}"></a-asset-item>
+<a-asset-item id="element.333_asset" src="{{ url_for('static', filename='model/element.333.gltf') }}"></a-asset-item>
+<a-asset-item id="element.334_asset" src="{{ url_for('static', filename='model/element.334.gltf') }}"></a-asset-item>
+<a-asset-item id="element.335_asset" src="{{ url_for('static', filename='model/element.335.gltf') }}"></a-asset-item>
+<a-asset-item id="element.336_asset" src="{{ url_for('static', filename='model/element.336.gltf') }}"></a-asset-item>
+<a-asset-item id="element.337_asset" src="{{ url_for('static', filename='model/element.337.gltf') }}"></a-asset-item>
+<a-asset-item id="element.338_asset" src="{{ url_for('static', filename='model/element.338.gltf') }}"></a-asset-item>
+<a-asset-item id="element.339_asset" src="{{ url_for('static', filename='model/element.339.gltf') }}"></a-asset-item>
+<a-asset-item id="element.340_asset" src="{{ url_for('static', filename='model/element.340.gltf') }}"></a-asset-item>
+<a-asset-item id="element.341_asset" src="{{ url_for('static', filename='model/element.341.gltf') }}"></a-asset-item>
+<a-asset-item id="element.342_asset" src="{{ url_for('static', filename='model/element.342.gltf') }}"></a-asset-item>
+<a-asset-item id="element.343_asset" src="{{ url_for('static', filename='model/element.343.gltf') }}"></a-asset-item>
+<a-asset-item id="element.344_asset" src="{{ url_for('static', filename='model/element.344.gltf') }}"></a-asset-item>
+<a-asset-item id="element.345_asset" src="{{ url_for('static', filename='model/element.345.gltf') }}"></a-asset-item>
+<a-asset-item id="element.346_asset" src="{{ url_for('static', filename='model/element.346.gltf') }}"></a-asset-item>
+<a-asset-item id="element.347_asset" src="{{ url_for('static', filename='model/element.347.gltf') }}"></a-asset-item>
+<a-asset-item id="element.348_asset" src="{{ url_for('static', filename='model/element.348.gltf') }}"></a-asset-item>
+<a-asset-item id="element.349_asset" src="{{ url_for('static', filename='model/element.349.gltf') }}"></a-asset-item>
+<a-asset-item id="element.350_asset" src="{{ url_for('static', filename='model/element.350.gltf') }}"></a-asset-item>
+<a-asset-item id="element.351_asset" src="{{ url_for('static', filename='model/element.351.gltf') }}"></a-asset-item>
+<a-asset-item id="element.352_asset" src="{{ url_for('static', filename='model/element.352.gltf') }}"></a-asset-item>
+<a-asset-item id="element.353_asset" src="{{ url_for('static', filename='model/element.353.gltf') }}"></a-asset-item>
+<a-asset-item id="element.354_asset" src="{{ url_for('static', filename='model/element.354.gltf') }}"></a-asset-item>
+<a-asset-item id="element.355_asset" src="{{ url_for('static', filename='model/element.355.gltf') }}"></a-asset-item>
+<a-asset-item id="element.356_asset" src="{{ url_for('static', filename='model/element.356.gltf') }}"></a-asset-item>
+<a-asset-item id="element.357_asset" src="{{ url_for('static', filename='model/element.357.gltf') }}"></a-asset-item>
+<a-asset-item id="element.358_asset" src="{{ url_for('static', filename='model/element.358.gltf') }}"></a-asset-item>
+<a-asset-item id="element.359_asset" src="{{ url_for('static', filename='model/element.359.gltf') }}"></a-asset-item>
+<a-asset-item id="element.360_asset" src="{{ url_for('static', filename='model/element.360.gltf') }}"></a-asset-item>
+<a-asset-item id="element.361_asset" src="{{ url_for('static', filename='model/element.361.gltf') }}"></a-asset-item>
+<a-asset-item id="element.362_asset" src="{{ url_for('static', filename='model/element.362.gltf') }}"></a-asset-item>
+<a-asset-item id="element.363_asset" src="{{ url_for('static', filename='model/element.363.gltf') }}"></a-asset-item>
+<a-asset-item id="element.364_asset" src="{{ url_for('static', filename='model/element.364.gltf') }}"></a-asset-item>
+<a-asset-item id="element.365_asset" src="{{ url_for('static', filename='model/element.365.gltf') }}"></a-asset-item>
+<a-asset-item id="element.366_asset" src="{{ url_for('static', filename='model/element.366.gltf') }}"></a-asset-item>
+<a-asset-item id="element.367_asset" src="{{ url_for('static', filename='model/element.367.gltf') }}"></a-asset-item>
+<a-asset-item id="element.368_asset" src="{{ url_for('static', filename='model/element.368.gltf') }}"></a-asset-item>
+<a-asset-item id="element.369_asset" src="{{ url_for('static', filename='model/element.369.gltf') }}"></a-asset-item>
+<a-asset-item id="element.370_asset" src="{{ url_for('static', filename='model/element.370.gltf') }}"></a-asset-item>
+<a-asset-item id="element.371_asset" src="{{ url_for('static', filename='model/element.371.gltf') }}"></a-asset-item>
+<a-asset-item id="element.372_asset" src="{{ url_for('static', filename='model/element.372.gltf') }}"></a-asset-item>
+<a-asset-item id="element.373_asset" src="{{ url_for('static', filename='model/element.373.gltf') }}"></a-asset-item>
+<a-asset-item id="element.374_asset" src="{{ url_for('static', filename='model/element.374.gltf') }}"></a-asset-item>
+<a-asset-item id="element.375_asset" src="{{ url_for('static', filename='model/element.375.gltf') }}"></a-asset-item>
+<a-asset-item id="element.376_asset" src="{{ url_for('static', filename='model/element.376.gltf') }}"></a-asset-item>
+<a-asset-item id="element.377_asset" src="{{ url_for('static', filename='model/element.377.gltf') }}"></a-asset-item>
+<a-asset-item id="element.378_asset" src="{{ url_for('static', filename='model/element.378.gltf') }}"></a-asset-item>
+<a-asset-item id="element.379_asset" src="{{ url_for('static', filename='model/element.379.gltf') }}"></a-asset-item>
+
+      </a-assets>
+
+<!--      <a-entity id="MyModel" gltf-model="#world" position="0 0 -5" scale="1 1 1"></a-entity>
+-->
+      <!--<a-plane src="#man01" scale="0.25 0.25 0.25" position="0 0.1 0" rotation="0 0 0" material="side: double"></a-plane>-->
+      <a-image name="男の子1" src="#man01" scale="0.25 0.25 0.25" position="0 0.1 0" rotation="0 0 0" material="side: double" static-body></a-image>
+      <!--<a-plane src="#woman01" scale="0.25 0.25 0.25" position="0.5 0.1 0" rotation="0 0 0" material="side: double"></a-plane>-->
+      <a-image name="女の子1" src="#woman01" scale="0.25 0.25 0.25" position="0.5 0.1 0" rotation="0 0 0" material="side: double" static-body></a-image>
+
+<a-entity id="Terrain" gltf-model="#Terrain_asset" position="0 0 0" scale="1 1 1" static-body></a-entity>
+<a-entity id="map_10.osm_forest" gltf-model="#map_10.osm_forest_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="四街道駅" gltf-model="#四街道駅_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element" gltf-model="#element_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.001" gltf-model="#element.001_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.002" gltf-model="#element.002_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.003" gltf-model="#element.003_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.004" gltf-model="#element.004_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.005" gltf-model="#element.005_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.006" gltf-model="#element.006_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.007" gltf-model="#element.007_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.008" gltf-model="#element.008_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.009" gltf-model="#element.009_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="西棟" gltf-model="#西棟_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="イトーヨーカドー" gltf-model="#イトーヨーカドー_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.010" gltf-model="#element.010_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.011" gltf-model="#element.011_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.012" gltf-model="#element.012_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.013" gltf-model="#element.013_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.014" gltf-model="#element.014_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.015" gltf-model="#element.015_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.016" gltf-model="#element.016_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.017" gltf-model="#element.017_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="中央公園管理事務所" gltf-model="#中央公園管理事務所_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="四街道市営プール" gltf-model="#四街道市営プール_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.018" gltf-model="#element.018_asset" position="0 0 0" scale="1 1 1" material="color: red" ammo-body="type: kinetic; mass:0" ammo-shape=" fit: all; type: mesh; halfExtents: 1 1 1;"></a-entity>
+<a-entity id="鹿渡集会所" gltf-model="#鹿渡集会所_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="四街道市消防署" gltf-model="#四街道市消防署_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.019" gltf-model="#element.019_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.020" gltf-model="#element.020_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.021" gltf-model="#element.021_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.022" gltf-model="#element.022_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="四街道青少年育成センター" gltf-model="#四街道青少年育成センター_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.023" gltf-model="#element.023_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="千葉銀行四街道支店" gltf-model="#千葉銀行四街道支店_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="フォーレ四街道" gltf-model="#フォーレ四街道_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.024" gltf-model="#element.024_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.025" gltf-model="#element.025_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="三井住友銀行" gltf-model="#三井住友銀行_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="和光" gltf-model="#和光_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="石窯パンの店ル・マタン四街道店" gltf-model="#石窯パンの店ル・マタン四街道店_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="ヴェール・レッシュヴ" gltf-model="#ヴェール・レッシュヴ_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="四街道市立図書館" gltf-model="#四街道市立図書館_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="四街道市文化センター" gltf-model="#四街道市文化センター_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="四街道市役所" gltf-model="#四街道市役所_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.026" gltf-model="#element.026_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="京葉銀行四街道支店" gltf-model="#京葉銀行四街道支店_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.027" gltf-model="#element.027_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.028" gltf-model="#element.028_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.029" gltf-model="#element.029_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.030" gltf-model="#element.030_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.031" gltf-model="#element.031_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="Ｍ２プラザ 立体駐車場" gltf-model="#Ｍ２プラザ 立体駐車場_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="ユニクロ四街道店" gltf-model="#ユニクロ四街道店_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.032" gltf-model="#element.032_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.033" gltf-model="#element.033_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.034" gltf-model="#element.034_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.035" gltf-model="#element.035_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.036" gltf-model="#element.036_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.037" gltf-model="#element.037_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.038" gltf-model="#element.038_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.039" gltf-model="#element.039_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.040" gltf-model="#element.040_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.041" gltf-model="#element.041_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.042" gltf-model="#element.042_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.043" gltf-model="#element.043_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.044" gltf-model="#element.044_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.045" gltf-model="#element.045_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.046" gltf-model="#element.046_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.047" gltf-model="#element.047_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.048" gltf-model="#element.048_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.049" gltf-model="#element.049_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.050" gltf-model="#element.050_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.051" gltf-model="#element.051_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.052" gltf-model="#element.052_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.053" gltf-model="#element.053_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.054" gltf-model="#element.054_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.055" gltf-model="#element.055_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.056" gltf-model="#element.056_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.057" gltf-model="#element.057_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.058" gltf-model="#element.058_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.059" gltf-model="#element.059_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.060" gltf-model="#element.060_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.061" gltf-model="#element.061_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.062" gltf-model="#element.062_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.063" gltf-model="#element.063_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.064" gltf-model="#element.064_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.065" gltf-model="#element.065_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.066" gltf-model="#element.066_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.067" gltf-model="#element.067_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.068" gltf-model="#element.068_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.069" gltf-model="#element.069_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.070" gltf-model="#element.070_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.071" gltf-model="#element.071_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.072" gltf-model="#element.072_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.073" gltf-model="#element.073_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.074" gltf-model="#element.074_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.075" gltf-model="#element.075_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.076" gltf-model="#element.076_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.077" gltf-model="#element.077_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.078" gltf-model="#element.078_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.079" gltf-model="#element.079_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.080" gltf-model="#element.080_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.081" gltf-model="#element.081_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.082" gltf-model="#element.082_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.083" gltf-model="#element.083_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.084" gltf-model="#element.084_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.085" gltf-model="#element.085_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.086" gltf-model="#element.086_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.087" gltf-model="#element.087_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.088" gltf-model="#element.088_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.089" gltf-model="#element.089_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.090" gltf-model="#element.090_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.091" gltf-model="#element.091_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.092" gltf-model="#element.092_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.093" gltf-model="#element.093_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.094" gltf-model="#element.094_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.095" gltf-model="#element.095_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.096" gltf-model="#element.096_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.097" gltf-model="#element.097_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.098" gltf-model="#element.098_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.099" gltf-model="#element.099_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.100" gltf-model="#element.100_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.101" gltf-model="#element.101_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.102" gltf-model="#element.102_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.103" gltf-model="#element.103_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.104" gltf-model="#element.104_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.105" gltf-model="#element.105_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.106" gltf-model="#element.106_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.107" gltf-model="#element.107_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.108" gltf-model="#element.108_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.109" gltf-model="#element.109_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.110" gltf-model="#element.110_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.111" gltf-model="#element.111_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.112" gltf-model="#element.112_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.113" gltf-model="#element.113_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.114" gltf-model="#element.114_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.115" gltf-model="#element.115_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.116" gltf-model="#element.116_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.117" gltf-model="#element.117_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.118" gltf-model="#element.118_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.119" gltf-model="#element.119_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.120" gltf-model="#element.120_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.121" gltf-model="#element.121_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.122" gltf-model="#element.122_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.123" gltf-model="#element.123_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.124" gltf-model="#element.124_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.125" gltf-model="#element.125_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.126" gltf-model="#element.126_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.127" gltf-model="#element.127_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.128" gltf-model="#element.128_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.129" gltf-model="#element.129_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.130" gltf-model="#element.130_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.131" gltf-model="#element.131_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.132" gltf-model="#element.132_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.133" gltf-model="#element.133_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.134" gltf-model="#element.134_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.135" gltf-model="#element.135_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.136" gltf-model="#element.136_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.137" gltf-model="#element.137_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.138" gltf-model="#element.138_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.139" gltf-model="#element.139_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.140" gltf-model="#element.140_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.141" gltf-model="#element.141_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.142" gltf-model="#element.142_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.143" gltf-model="#element.143_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.144" gltf-model="#element.144_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.145" gltf-model="#element.145_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.146" gltf-model="#element.146_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.147" gltf-model="#element.147_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.148" gltf-model="#element.148_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.149" gltf-model="#element.149_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.150" gltf-model="#element.150_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.151" gltf-model="#element.151_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.152" gltf-model="#element.152_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.153" gltf-model="#element.153_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.154" gltf-model="#element.154_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.155" gltf-model="#element.155_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.156" gltf-model="#element.156_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.157" gltf-model="#element.157_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.158" gltf-model="#element.158_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.159" gltf-model="#element.159_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.160" gltf-model="#element.160_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.161" gltf-model="#element.161_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.162" gltf-model="#element.162_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.163" gltf-model="#element.163_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.164" gltf-model="#element.164_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.165" gltf-model="#element.165_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.166" gltf-model="#element.166_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.167" gltf-model="#element.167_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.168" gltf-model="#element.168_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.169" gltf-model="#element.169_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.170" gltf-model="#element.170_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.171" gltf-model="#element.171_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.172" gltf-model="#element.172_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.173" gltf-model="#element.173_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.174" gltf-model="#element.174_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.175" gltf-model="#element.175_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.176" gltf-model="#element.176_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.177" gltf-model="#element.177_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.178" gltf-model="#element.178_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.179" gltf-model="#element.179_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.180" gltf-model="#element.180_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.181" gltf-model="#element.181_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.182" gltf-model="#element.182_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.183" gltf-model="#element.183_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.184" gltf-model="#element.184_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.185" gltf-model="#element.185_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.186" gltf-model="#element.186_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.187" gltf-model="#element.187_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.188" gltf-model="#element.188_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.189" gltf-model="#element.189_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.190" gltf-model="#element.190_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.191" gltf-model="#element.191_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.192" gltf-model="#element.192_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.193" gltf-model="#element.193_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.194" gltf-model="#element.194_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.195" gltf-model="#element.195_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.196" gltf-model="#element.196_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.197" gltf-model="#element.197_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.198" gltf-model="#element.198_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.199" gltf-model="#element.199_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.200" gltf-model="#element.200_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.201" gltf-model="#element.201_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.202" gltf-model="#element.202_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.203" gltf-model="#element.203_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.204" gltf-model="#element.204_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.205" gltf-model="#element.205_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.206" gltf-model="#element.206_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.207" gltf-model="#element.207_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.208" gltf-model="#element.208_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.209" gltf-model="#element.209_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.210" gltf-model="#element.210_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.211" gltf-model="#element.211_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.212" gltf-model="#element.212_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.213" gltf-model="#element.213_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.214" gltf-model="#element.214_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.215" gltf-model="#element.215_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.216" gltf-model="#element.216_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.217" gltf-model="#element.217_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.218" gltf-model="#element.218_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.219" gltf-model="#element.219_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.220" gltf-model="#element.220_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.221" gltf-model="#element.221_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.222" gltf-model="#element.222_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.223" gltf-model="#element.223_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.224" gltf-model="#element.224_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.225" gltf-model="#element.225_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.226" gltf-model="#element.226_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.227" gltf-model="#element.227_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.228" gltf-model="#element.228_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.229" gltf-model="#element.229_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.230" gltf-model="#element.230_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.231" gltf-model="#element.231_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.232" gltf-model="#element.232_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.233" gltf-model="#element.233_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.234" gltf-model="#element.234_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.235" gltf-model="#element.235_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.236" gltf-model="#element.236_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.237" gltf-model="#element.237_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.238" gltf-model="#element.238_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.239" gltf-model="#element.239_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.240" gltf-model="#element.240_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.241" gltf-model="#element.241_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.242" gltf-model="#element.242_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.243" gltf-model="#element.243_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.244" gltf-model="#element.244_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.245" gltf-model="#element.245_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.246" gltf-model="#element.246_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.247" gltf-model="#element.247_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.248" gltf-model="#element.248_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.249" gltf-model="#element.249_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.250" gltf-model="#element.250_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.251" gltf-model="#element.251_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.252" gltf-model="#element.252_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.253" gltf-model="#element.253_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.254" gltf-model="#element.254_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.255" gltf-model="#element.255_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.256" gltf-model="#element.256_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.257" gltf-model="#element.257_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.258" gltf-model="#element.258_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.259" gltf-model="#element.259_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.260" gltf-model="#element.260_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.261" gltf-model="#element.261_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.262" gltf-model="#element.262_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.263" gltf-model="#element.263_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.264" gltf-model="#element.264_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.265" gltf-model="#element.265_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.266" gltf-model="#element.266_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.267" gltf-model="#element.267_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.268" gltf-model="#element.268_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.269" gltf-model="#element.269_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.270" gltf-model="#element.270_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.271" gltf-model="#element.271_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.272" gltf-model="#element.272_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.273" gltf-model="#element.273_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.274" gltf-model="#element.274_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.275" gltf-model="#element.275_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.276" gltf-model="#element.276_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.277" gltf-model="#element.277_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.278" gltf-model="#element.278_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.279" gltf-model="#element.279_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.280" gltf-model="#element.280_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.281" gltf-model="#element.281_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.282" gltf-model="#element.282_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.283" gltf-model="#element.283_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.284" gltf-model="#element.284_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.285" gltf-model="#element.285_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.286" gltf-model="#element.286_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.287" gltf-model="#element.287_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.288" gltf-model="#element.288_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.289" gltf-model="#element.289_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.290" gltf-model="#element.290_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.291" gltf-model="#element.291_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.292" gltf-model="#element.292_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.293" gltf-model="#element.293_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.294" gltf-model="#element.294_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.295" gltf-model="#element.295_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.296" gltf-model="#element.296_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.297" gltf-model="#element.297_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.298" gltf-model="#element.298_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.299" gltf-model="#element.299_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.300" gltf-model="#element.300_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.301" gltf-model="#element.301_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.302" gltf-model="#element.302_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.303" gltf-model="#element.303_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.304" gltf-model="#element.304_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.305" gltf-model="#element.305_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.306" gltf-model="#element.306_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.307" gltf-model="#element.307_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.308" gltf-model="#element.308_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.309" gltf-model="#element.309_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.310" gltf-model="#element.310_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.311" gltf-model="#element.311_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.312" gltf-model="#element.312_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.313" gltf-model="#element.313_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.314" gltf-model="#element.314_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.315" gltf-model="#element.315_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.316" gltf-model="#element.316_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.317" gltf-model="#element.317_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.318" gltf-model="#element.318_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.319" gltf-model="#element.319_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.320" gltf-model="#element.320_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.321" gltf-model="#element.321_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.322" gltf-model="#element.322_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.323" gltf-model="#element.323_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.324" gltf-model="#element.324_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.325" gltf-model="#element.325_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.326" gltf-model="#element.326_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.327" gltf-model="#element.327_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.328" gltf-model="#element.328_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.329" gltf-model="#element.329_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.330" gltf-model="#element.330_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.331" gltf-model="#element.331_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.332" gltf-model="#element.332_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.333" gltf-model="#element.333_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.334" gltf-model="#element.334_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.335" gltf-model="#element.335_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.336" gltf-model="#element.336_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.337" gltf-model="#element.337_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.338" gltf-model="#element.338_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.339" gltf-model="#element.339_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.340" gltf-model="#element.340_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.341" gltf-model="#element.341_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.342" gltf-model="#element.342_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.343" gltf-model="#element.343_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.344" gltf-model="#element.344_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.345" gltf-model="#element.345_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.346" gltf-model="#element.346_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.347" gltf-model="#element.347_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.348" gltf-model="#element.348_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.349" gltf-model="#element.349_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.350" gltf-model="#element.350_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.351" gltf-model="#element.351_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.352" gltf-model="#element.352_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.353" gltf-model="#element.353_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.354" gltf-model="#element.354_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.355" gltf-model="#element.355_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.356" gltf-model="#element.356_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.357" gltf-model="#element.357_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.358" gltf-model="#element.358_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.359" gltf-model="#element.359_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.360" gltf-model="#element.360_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.361" gltf-model="#element.361_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.362" gltf-model="#element.362_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.363" gltf-model="#element.363_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.364" gltf-model="#element.364_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.365" gltf-model="#element.365_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.366" gltf-model="#element.366_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.367" gltf-model="#element.367_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.368" gltf-model="#element.368_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.369" gltf-model="#element.369_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.370" gltf-model="#element.370_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.371" gltf-model="#element.371_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.372" gltf-model="#element.372_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.373" gltf-model="#element.373_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.374" gltf-model="#element.374_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.375" gltf-model="#element.375_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.376" gltf-model="#element.376_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.377" gltf-model="#element.377_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.378" gltf-model="#element.378_asset" position="0 0 0" scale="1 1 1"></a-entity>
+<a-entity id="element.379" gltf-model="#element.379_asset" position="0 0 0" scale="1 1 1"></a-entity>
+
+    </a-scene>
+    <script type="module">
+        import { gltfPhysicsObjectComponent } from '/static/js/components/gltfPhysicsObjectComponent.js';
+
+        // gltfPhysicsObjectComponentをここで使用する
+        AFRAME.registerComponent('physics-object', gltfPhysicsObjectComponent);
+    </script>
+    <script>
+      AFRAME.registerComponent('frame-logger', {
+        tick: function () {
+          //console.log("frame");
+        }
+      });
+
+/*      const modelEl = document.querySelector("#MyModel");
+      modelEl.addEventListener("model-loaded", function () {
+        var playerEl = document.querySelector("[camera]");
+        playerEl.addEventListener("collide", function(e) {
+          console.log("Player has collided with body #" + e.detail.targetEl.id);
+          e.detail.targetEl; // Other entity, which playerEl touched.
+        });
+
+        console.log("loaded");
+        const modelObject3D = modelEl.object3D;
+
+        //#MyModelの子オブジェクトを列挙
+        modelObject3D.traverse(enumerateMeshes);
+
+        function enumerateMeshes(mesh) {
+          if (mesh.isMesh) {
+            if (mesh.name[0] == '(' && mesh.name[2] == ')') {
+              console.log(mesh.name);
+              //lookAtCamera(mesh);
+            }
+          }
+        }
+
+        function lookAtCamera(mesh) {
+          //            mesh.lookAt(new THREE.Vector3(cameraPosition.x, cameraPosition.y, cameraPosition.z));
+          //
+          mesh.lookAt(new THREE.Vector3(0, 0, 0));
+        }
+      });
+*/
+      const socket = io("http://{{host}}/"); // サーバーのURLに置き換える
+      // チャット送信イベントのハンドラ
+      document.getElementById("bt_chat_send").addEventListener("click", function (event) {
+//        if (event.key === "Enter") {
+          event.preventDefault(); // フォームの送信を防止
+
+          const message = document.getElementById("chatInput").value;
+          socket.emit("chatMessage", message);
+          this.value = "";
+//        }
+      });
+
+      // チャットメッセージ受信イベントのハンドラ
+      socket.on("chatMessage", function (message) {
+        const chatMessages = document.getElementById("message_list");
+        chatMessages.value += message + "\n";
+        console.log(message);
+      });
+
+      socket.on('connect', function() {
+        msg = 'I\'m connected!';
+        console.log(msg);
+        socket.emit('my event', {data: msg});
+      });
+
+    </script>
+  </body>
+</html>
