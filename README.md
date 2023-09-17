@@ -16,7 +16,11 @@ flask run -h localhost -p 5001 \
 
 ## demo
 http://shoutengai.futuregadget.com
+- Assets using Blosm
 
 ## note
 Assets is excluded on this repository.
 
+## using Library
+- A-Frame
+- A-Frame Socket.IO
