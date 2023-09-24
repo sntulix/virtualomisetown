@@ -75,6 +75,8 @@
         <img id="man01" alt="" src="{{ url_for('static', filename='img/男性夏服1.gif') }}">
         <img id="woman01" alt="" src="{{ url_for('static', filename='img/女性夏服1.gif') }}">
 
+        <a-asset-item id="sky_asset" src="{{ url_for('static', filename='model/sky.glb') }}"></a-asset-item>
+
         {% block content_assets %}{% endblock %}
 
     </a-assets>
@@ -89,6 +91,9 @@
              static-body></a-image>
     <!--<a-entity id="element.018" gltf-model="#element.018_asset" position="0 0 0" scale="1 1 1" material="color: red" physics-object="model: #element.018_asset; body: static; shape: box" ammo-body="type: kinetic; mass:0" ammo-shape=" fit: manual; type: box; halfExtents: 1 1 1;"></a-entity>
     -->
+
+    <a-entity id="sky" gltf-model="#sky_asset" position="0.0 450.0 0.0" scale="1 1 1"></a-entity>
+
     {% block content_entities %}{% endblock %}
 
 </a-scene>
