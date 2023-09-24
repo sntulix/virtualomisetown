@@ -8,13 +8,15 @@ export const gltfPhysicsObjectComponent = {
         const gltfmodel = document.createElement('a-entity')
         this.el.appendChild(gltfmodel)
 
+        gltfmodel.setAttribute('material', 'opacity: 0.0');
         //gltfmodel.object3D.position.set(0, 0.1, 0)
         gltfmodel.object3D.scale.set(1, 1, 1)
         //gltfmodel.setAttribute('gltf-model', this.data.model)
         gltfmodel.setAttribute('id', this.el.id+"_physics-model")
 
         this.el.addEventListener('model-loaded', () => {
-            gltfmodel.setAttribute('geometry', 'primitive: box');
+//            gltfmodel.setAttribute('geometry', 'primitive: box');
+            gltfmodel.setAttribute('geometry', this.el.getAttribute('geometry'));
             gltfmodel.setAttribute('ammo-body', 'type: static');
             gltfmodel.setAttribute('ammo-shape', 'type: box');
 
