@@ -16,7 +16,7 @@ export const gltfPhysicsObjectComponent = {
 
         this.el.addEventListener('model-loaded', () => {
 //            gltfmodel.setAttribute('geometry', 'primitive: box');
-            gltfmodel.setAttribute('geometry', this.el.getAttribute('geometry'));
+            gltfmodel.setAttribute('geometry', this.el.getAttribute('geometry_params'));
             gltfmodel.setAttribute('ammo-body', 'type: static');
             gltfmodel.setAttribute('ammo-shape', 'type: box');
 
