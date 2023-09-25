@@ -8,101 +8,72 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"/>
 </head>
 <body>
-<div style="z-index:1; position: absolute;">W・S・A・Dキーで前後左右に移動。マウス左ドラッグで目線を回転。</div>
-<a-scene physics="driver: ammo; debug: false; gravity: -9.8; debugDrawMode: 1">
-    <!--
-          <a-text color="black" position="1.5 3 -3" value="damping: 0.25\nstiffness: 25"></a-text>
-          <a-box id="one" position="2 2 -3" color="blue" ammo-body="type: static"></a-box>
-          <a-box position="2 1 -3"
-                 color="green"
-                 ammo-body="linearSleepingThreshold: 0.5" ammo-shape
-                 ammo-constraint="target: #one; type: spring; damping: 0.25; stiffness: 25"></a-box>
+    <div style="z-index:1; position: absolute;">W・S・A・Dキーで前後左右に移動。マウス左ドラッグで目線を回転。</div>
+    <a-scene physics="driver: ammo; debug: false; gravity: -9.8; debugDrawMode: 1">
+        <!-- カメラ -->
+        <a-camera id="camera" fov="50" position="138 16 377" rotation="0 0 0"></a-camera>
+        <a-entity camera look-controls wasd-controls="acceleration:0"></a-entity>
 
-          <a-text color="black" position="-0.5 3 -3" value="damping: 0.75\nstiffness: 75"></a-text>
-          <a-box id="two" position="0 2 -3" color="blue" ammo-body="type: static"></a-box>
-          <a-box id="onespring"
-                 position="0 1 -3"
-                 color="green"
-                 ammo-body="linearSleepingThreshold: 0.5" ammo-shape
-                 ammo-constraint="target: #two; type: spring; damping: 0.75; stiffness: 75;"></a-box>
+        <a-entity frame-logger></a-entity>
 
-          <a-text color="black" position="-2.5 3 -3" value="damping: 1\nstiffness: 100"></a-text>
-          <a-box id="three" position="-2 2 -3" color="blue" ammo-body="type: static"></a-box>
-          <a-box id="twospring"
-                 position="-2 1 -3"
-                 color="green"
-                 ammo-body="linearSleepingThreshold: 0.5" ammo-shape
-                 ammo-constraint="target: #three; type: spring; "></a-box>
-
-          <a-text color="black" position="4.5 3 -3" value="localAnchorB:1 0 0\n(not yet supported in Ammo)"></a-text>
-          <a-box id="four" position="5 2 -3" color="blue" ammo-body="type: static"></a-box>
-          <a-box id="threespring"
-                 position="5 1 -3"
-                 color="green"
-                 ammo-body="linearSleepingThreshold: 0.5" ammo-shape
-                 ammo-constraint="target: #four; type: spring; targetPivot: 1 0 0;"></a-box>
-
-    -->
-    <a-plane rotation="-90 0 0" geometry="primitive: plane; height: 10; width: 10"
-             position="140 0 264"
-             ammo-body="type: static"
-             ammo-shape="type: box"></a-plane>
-    <a-entity id="board"
-              geometry="primitive: box; depth: 2; height: 2; width: 2" material="color: #deb887"
-              ammo-body
-              ammo-shape="type: box;"
-              position="105.2 150 310.6">
-    </a-entity>
+        <a-plane rotation="-90 0 0" geometry="primitive: plane; height: 10; width: 10"
+                 position="140 0 264"
+                 ammo-body="type: static"
+                 ammo-shape="type: box"></a-plane>
+        <a-entity id="board"
+                  geometry="primitive: box; depth: 2; height: 2; width: 2" material="color: #deb887"
+                  ammo-body
+                  ammo-shape="type: box;"
+                  position="105.2 150 310.6">
+        </a-entity>
 
 
-    <a-entity camera look-controls wasd-controls="acceleration:0"></a-entity>
-    <a-camera id="camera" fov="50" position="138 16 377" rotation="0 0 0"></a-camera>
+        <!-- UI -->
+        <div id="formContainer">
+            <textarea id="message_list" cols="31" rows="15" readonly></textarea>
+            <form id="myForm">
+                <label for="chatInput"></label>
+                <input type="text" id="chatInput" placeholder="チャット欄"/>
+                <button id="bt_chat_send" value="送信">送信</button>
+            </form>
+        </div>
 
-    <a-entity frame-logger></a-entity>
-    <div id="formContainer">
-        <textarea id="message_list" cols="31" rows="15" readonly></textarea>
-        <form id="myForm">
-            <label for="chatInput"></label>
-            <input type="text" id="chatInput" placeholder="チャット欄"/>
-            <button id="bt_chat_send" value="送信">送信</button>
-        </form>
-    </div>
 
-    <a-assets>
-        <!--        <a-asset-item id="world" src="{{ url_for('static', filename='model/Yotsukaido.glb') }}"></a-asset-item>
-        -->
+        <a-assets>
+            <img id="man01" alt="" src="{{ url_for('static', filename='img/男性夏服1.gif') }}">
+            <img id="woman01" alt="" src="{{ url_for('static', filename='img/女性夏服1.gif') }}">
 
-        <img id="man01" alt="" src="{{ url_for('static', filename='img/男性夏服1.gif') }}">
-        <img id="woman01" alt="" src="{{ url_for('static', filename='img/女性夏服1.gif') }}">
+            <a-asset-item id="sky_asset" src="{{ url_for('static', filename='model/sky.glb') }}"></a-asset-item>
 
-        <a-asset-item id="sky_asset" src="{{ url_for('static', filename='model/sky.glb') }}"></a-asset-item>
+            <!-- マップアセット -->
+            {% block content_assets %}{% endblock %}
 
-        {% block content_assets %}{% endblock %}
+        </a-assets>
 
-    </a-assets>
+        <!-- エンティティ -->
+        <!-- スカイボックス -->
+        <a-entity id="sky" gltf-model="#sky_asset" position="0.0 450.0 0.0" scale="1 1 1"></a-entity>
 
-    <!--      <a-entity id="MyModel" gltf-model="#world" position="0 0 -5" scale="1 1 1"></a-entity>
-    -->
-    <!--<a-plane src="#man01" scale="0.25 0.25 0.25" position="0 0.1 0" rotation="0 0 0" material="side: double"></a-plane>-->
-    <a-image name="男の子1" src="#man01" scale="1 1 1" position="137.5 15.5 335" rotation="0 0 0" material="side: double"
-             static-body></a-image>
-    <!--<a-plane src="#woman01" scale="0.25 0.25 0.25" position="0.5 0.1 0" rotation="0 0 0" material="side: double"></a-plane>-->
-    <a-image name="女の子1" src="#woman01" scale="1 1 1" position="138 15.5 335" rotation="0 0 0" material="side: double"
-             static-body></a-image>
-    <!--<a-entity id="element.018" gltf-model="#element.018_asset" position="0 0 0" scale="1 1 1" material="color: red" physics-object="model: #element.018_asset; body: static; shape: box" ammo-body="type: kinetic; mass:0" ammo-shape=" fit: manual; type: box; halfExtents: 1 1 1;"></a-entity>
-    -->
+        <a-image name="男の子1" src="#man01" scale="1 1 1" position="137.5 15.5 335" rotation="0 0 0" material="side: double"
+                 static-body></a-image>
+        <a-image name="女の子1" src="#woman01" scale="1 1 1" position="138 15.5 335" rotation="0 0 0" material="side: double"
+                 static-body></a-image>
 
-    <a-entity id="sky" gltf-model="#sky_asset" position="0.0 450.0 0.0" scale="1 1 1"></a-entity>
+        <!-- マップエンティティ -->
+        {% block content_entities %}{% endblock %}
 
-    {% block content_entities %}{% endblock %}
+    </a-scene>
 
-</a-scene>
-<script type="module">
-    import {gltfPhysicsObjectComponent} from '/static/js/components/gltfPhysicsObjectComponent.js';
 
-    // gltfPhysicsObjectComponentをここで使用する
-    AFRAME.registerComponent('physics-object', gltfPhysicsObjectComponent);
-</script>
-<script type="application/javascript" src="/static/js/main.js"></script>
+    <script type="module">
+        /* コリジョン設定 */
+        import {gltfPhysicsObjectComponent} from '/static/js/components/gltfPhysicsObjectComponent.js';
+
+        // gltfPhysicsObjectComponentをここで使用する
+        AFRAME.registerComponent('physics-object', gltfPhysicsObjectComponent);
+    </script>
+
+    <!-- メインロジック -->
+    <script type="application/javascript" src="/static/js/main.js"></script>
 </body>
 </html>
