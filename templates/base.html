@@ -40,10 +40,11 @@
 
 
         <a-assets>
+            <!-- スカイボックスアセット -->
+            <a-asset-item id="sky_asset" src="{{ url_for('static', filename='model/sky.glb') }}"></a-asset-item>
+
             <img id="man01" alt="" src="{{ url_for('static', filename='img/男性夏服1.gif') }}">
             <img id="woman01" alt="" src="{{ url_for('static', filename='img/女性夏服1.gif') }}">
-
-            <a-asset-item id="sky_asset" src="{{ url_for('static', filename='model/sky.glb') }}"></a-asset-item>
 
             <!-- マップアセット -->
             {% block content_assets %}{% endblock %}
