@@ -34,7 +34,7 @@ function lookAtCamera(mesh) {
 }
 });
 */
-const socket = io("http://{{host}}/"); // サーバーのURLに置き換える
+const socket = io(VOM_HOST); // サーバーのURLに置き換える
 // チャット送信イベントのハンドラ
 document.getElementById("bt_chat_send").addEventListener("click", function (event) {
 //        if (event.key === "Enter") {

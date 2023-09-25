@@ -1,4 +1,5 @@
 # サーバーサイドのPythonファイル (server.pyなど)
+import os
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 
@@ -7,7 +8,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 @app.route('/')
 def index():
-	return render_template('index.html')
+	return render_template('index.html', host=os.environ['FLASK_RUN_HOST'], port=os.environ['FLASK_RUN_PORT'])
 
 @socketio.on('connect')
 def handle_connect():

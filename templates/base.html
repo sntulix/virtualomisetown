@@ -6,6 +6,9 @@
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-physics-system@v4.2.2/dist/aframe-physics-system.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"/>
+    <script type="application/javascript">
+        const VOM_HOST = "http://{{ host }}:{{ port }}/" // サーバーのURLに置き換える
+    </script>
 </head>
 <body>
     <div style="z-index:1; position: absolute;">W・S・A・Dキーで前後左右に移動。マウス左ドラッグで目線を回転。</div>
