@@ -11,7 +11,7 @@
     <div style="z-index:1; position: absolute;">W・S・A・Dキーで前後左右に移動。マウス左ドラッグで目線を回転。</div>
     <a-scene physics="driver: ammo; debug: false; gravity: -9.8; debugDrawMode: 1">
         <!-- カメラ -->
-        <a-camera id="camera" fov="50" position="138 16 377" rotation="0 0 0"></a-camera>
+        <a-camera id="camera" far="1500" fov="50" position="138 16 377" rotation="0 0 0"></a-camera>
         <a-entity camera look-controls wasd-controls="acceleration:0"></a-entity>
 
         <a-entity frame-logger></a-entity>
