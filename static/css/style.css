@@ -20,6 +20,10 @@
     align-items: center;
 }
 
+#dialog_container h2 {
+    text-align: center;
+}
+
 #formContainer {
     z-index:1;
     position: fixed;

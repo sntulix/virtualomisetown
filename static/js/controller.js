@@ -30,7 +30,7 @@ var VOD_Controller = function() {
     this.doEvent = function(params) {
         console.log(params);
         if (params.object.includes('information')) {
-            Dialog_open(params.object, params.player);
+            openInformationDialog();
         }
     }
 }

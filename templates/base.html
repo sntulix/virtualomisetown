@@ -6,6 +6,7 @@
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-physics-system@v4.2.2/dist/aframe-physics-system.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/dialog.css') }}"/>
     <script type="application/javascript">
         const VOM_HOST = "http://{{ host }}:{{ port }}/" // サーバーのURLに置き換える
     </script>
@@ -14,6 +15,9 @@
     <div id="header">
         <div class="left-block">
             <span>W・S・A・Dキーで前後左右に移動。マウス左ドラッグで目線を回転。</span>
+        </div>
+        <div class="right-block">
+            <button onclick="ui_information_button()">information</button>
         </div>
     </div>
 
@@ -42,7 +46,7 @@
             <form id="myForm">
                 <label for="chatInput"></label>
                 <input type="text" id="chatInput" placeholder="チャット欄"/>
-                <button id="bt_chat_send" value="送信">送信</button>
+                <button id="bt_chat_send" value="送信" onclick="ui_information_button()">送信</button>
             </form>
         </div>
 
@@ -84,5 +88,8 @@
 
     <!-- メインロジック -->
     <script type="application/javascript" src="/static/js/main.js"></script>
+    <script type="application/javascript" src="/static/js/controller.js"></script>
+    <script type="application/javascript" src="/static/js/event_information.js"></script>
+    <script type="application/javascript" src="/static/js/ui_information_button.js"></script>
 </body>
 </html>
