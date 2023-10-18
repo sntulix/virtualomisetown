@@ -23,4 +23,6 @@ Assets is excluded on this repository.
 
 ## using Library
 - A-Frame
-- A-Frame Socket.IO
+- Flask
+- Flask Socket.IO
+- OpenStreetMap
