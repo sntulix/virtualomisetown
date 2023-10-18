@@ -1,12 +1,10 @@
-#!/bin/sh
+#/bin/sh
 
-export FLASK_RUN_HOST=localhost
+export FLASK_RUN_HOST=takahironomacmini.local
 export FLASK_RUN_PORT=5001
 
 flask run -h $FLASK_RUN_HOST -p $FLASK_RUN_PORT \
-#--cert server.crt --key server-nopassword.key \
---debugger \
 --reload \
---extra-files templates/base.html
-#--extra-files static/js/main.js \
-#--extra-files templates/base.html \
+--extra-files templates/base.html \
+--debugger
+#--cert server.crt --key server-nopassword.key
