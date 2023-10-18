@@ -11,7 +11,12 @@
     </script>
 </head>
 <body>
-    <div style="z-index:1; position: absolute;">W・S・A・Dキーで前後左右に移動。マウス左ドラッグで目線を回転。</div>
+    <div id="header">
+        <div class="left-block">
+            <span>W・S・A・Dキーで前後左右に移動。マウス左ドラッグで目線を回転。</span>
+        </div>
+    </div>
+
     <a-scene physics="driver: ammo; debug: false; gravity: -9.8; debugDrawMode: 1">
         <!-- カメラ -->
         <a-camera id="camera" far="1500" fov="50" position="138 16 377" rotation="0 0 0"></a-camera>
