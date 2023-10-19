@@ -1,0 +1,59 @@
+.container {
+    position: relative;
+    height: 100vh; /* この高さがiframeの高さよりも大きいことを確認してください */
+    width: 100%; /* 必要に応じて */
+    overflow: hidden; /* iframeがコンテナをはみ出す場合にはみ出し部分を非表示にする */
+}
+
+.dialog_container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60%; /* iframeの幅を指定 */
+    height: 80%; /* iframeの高さを指定 */
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+}
+
+.dialog_container div.center_container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 横方向の中央寄せ */
+    align-items: center;     /* 縦方向の中央寄せ */
+}
+
+#dialog_container h2 {
+    text-align: center;
+}
+
+#license_container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60%; /* iframeの幅を指定 */
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    height: 90%;
+}
+
+#license_container div.center_container {
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 横方向の中央寄せ */
+    align-items: center;     /* 縦方向の中央寄せ */
+    overflow-y: auto;
+}
+
+
+.center_container {
+    text-align: center;
+}
+
+.center_container div {
+    text-align: center;
+}
