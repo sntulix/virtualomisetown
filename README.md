@@ -3,7 +3,9 @@
 ## これは何ですか？ / About
 
 PCやスマフォブラウザで動く仮想の商店街です。  
-~~オンラインでユーザーとチャットができたり、バーチャル商店街に出店したり、お買い物をすることができます。~~ (機能停止 / deprecated)
+~~オンラインでユーザーとチャットができたり、バーチャル商店街に出店したり、他のユーザーのお店でお買い物をすることができます。~~ (機能停止)  
+This is a virtual arcade on PC browser and Smartphone browser.  
+~~You could do chats with other user, start your shop, buy items from other user's shop.~~ (deprecated)  
 
 ## セットアップ / setup
 ```
